@@ -1,3 +1,5 @@
+#![windows_subsystem = "windows"] // get rid of console
+
 mod scroll_block;
 use scroll_block::ScrollBlock;
 
@@ -23,6 +25,9 @@ fn main() {
         .title("Scroll tester")
         .build();
 
+    let default_font = rl.gui_get_font();
+
+    // this used to clear the texture
     let screen_rec = Rectangle::new(0.0, 0.0, SCREEN_WIDTH, -SCREEN_HEIGHT);
     let position = Vector2::zero();
 
@@ -31,9 +36,9 @@ fn main() {
     rl.set_target_fps(500); // fps cap set in order to avoid lagging th game
 
     let mut scroll_block = ScrollBlock::new(
-        20.0,
+        15.0,
         40.0,
-        SCREEN_WIDTH / 2.0,
+        0.0,
         SCREEN_HEIGHT / 2.0,
         SCREEN_WIDTH,
         SCREEN_HEIGHT,
@@ -43,7 +48,7 @@ fn main() {
         },
         Color::RED,
     );
-    let mut scroll_amount: i32;
+    let mut scroll_amount: i64;
     let mut delta;
 
     // this dictates whether the app takes full focus or not
@@ -63,13 +68,6 @@ fn main() {
     let mut target = rl
         .load_render_texture(&rl_thread, SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32)
         .unwrap();
-
-    // pre-loop screen clear\
-    // apparently useless
-    /* {
-        let mut d = rl.begin_drawing(&thread);
-        d.clear_background(Color::WHITE);
-    } */
 
     /* ------------ GLOBALSCROLL ------------ */
     // this part is used to gather mouse scroll information even when window is not in focus
@@ -95,14 +93,14 @@ fn main() {
         }
     });
 
-    let mut scroll_diff: i64;
-
     /* ------------ MAINLOOP ------------ */
     while !rl.window_should_close() {
         // get scroll inputs
         {
+            // this is scoped as otherwise the scroll variable would live as long as the entire
+            // loop and get no chance to update
             let mut scroll = scroll_event.lock().unwrap();
-            scroll_amount = scroll.clone() as i32;
+            scroll_amount = *scroll;
             // reset scroll counter each frame
             *scroll = 0;
         }
@@ -134,17 +132,25 @@ fn main() {
             scroll_block.tick();
         } */
 
-        // move at a constant speed
-        scroll_block.tick(delta);
-
-        /* ------------ PAINT ------------ */
+        // move at a constant speed, i've decided to make this frame dependent
+        scroll_block.tick(1.0 / 500.0); // if the compiler didn't hardcode the value it's
+                                        // not my fault
 
         /* ------------ DRAW ------------ */
         let mut d: RaylibDrawHandle = rl.begin_drawing(&rl_thread);
 
+        /* ------------ PAINT ------------ */
         {
             let mut texture_drawer = d.begin_texture_mode(&rl_thread, &mut target);
             texture_drawer.draw_rectangle_rec(scroll_block.rect, scroll_block.get_color());
+            /*            let parallelogram = scroll_block.get_parallelogram();
+            let color = scroll_block.get_color();
+            texture_drawer.draw_triangle(
+                parallelogram.0.v1,
+                parallelogram.0.v2,
+                parallelogram.0.v3,
+                color,
+            ); */
 
             if texture_clear_timer.tick_timeout(delta) {
                 texture_drawer.draw_rectangle(
@@ -166,14 +172,27 @@ fn main() {
         scroll_block.draw(&mut d);
 
         // draw UI
-        d.draw_fps(0, 0);
-    }
-}
+        // d.draw_fps(0, 0);
+        // scrolls in a row
+        let scrolls_text = format!("scrolls: {}", scroll_block.scrolls_in_a_row);
+        let max_text = format!("best: {}", scroll_block.max_scrolls);
 
-fn callback(event: Event) {
-    if let rdev::EventType::Wheel { delta_y, .. } = event.event_type {
-        if delta_y != 0 {
-            println!("{}", delta_y);
-        }
+        let spacing = 5.0;
+        d.draw_text_ex(
+            &default_font,
+            scrolls_text.as_str(),
+            Vector2 { x: 10.0, y: 10.0 },
+            30.0,
+            spacing,
+            Color::WHITE,
+        );
+        d.draw_text_ex(
+            &default_font,
+            max_text.as_str(),
+            Vector2 { x: 10.0, y: 50.0 },
+            30.0,
+            spacing,
+            Color::WHITE,
+        );
     }
 }

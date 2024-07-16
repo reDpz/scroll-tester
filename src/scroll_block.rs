@@ -18,6 +18,7 @@ pub struct ScrollBlock {
     pub last_scrolled_at: f64,
     pub last_scrolled: f64,
     pub scrolls_in_a_row: u16,
+    pub max_scrolls: u16,
 }
 
 impl ScrollBlock {
@@ -42,8 +43,8 @@ impl ScrollBlock {
             screen_width,
             screen_height,
             up_color,
-            up_color_bg: darken(up_color, multiplier),
-            down_color_bg: darken(down_color, multiplier),
+            up_color_bg: multiply_color(up_color, multiplier),
+            down_color_bg: multiply_color(down_color, multiplier),
             down_color,
             step_size: width / 2.0,
             scroll_size: height,
@@ -52,10 +53,11 @@ impl ScrollBlock {
             last_scrolled_at: 0.0,
             last_scrolled: 0.0,
             scrolls_in_a_row: 0,
+            max_scrolls: 0,
         }
     }
 
-    pub fn scroll(&mut self, amount: i32, time: f64) {
+    pub fn scroll(&mut self, amount: i64, time: f64) {
         self.rect.y += self.scroll_size * amount as f32;
 
         // if there is a change in scroll direction
@@ -79,7 +81,11 @@ impl ScrollBlock {
 
         self.last_scrolled = time - self.last_scrolled_at;
         self.last_scrolled_at = time;
-        self.scrolls_in_a_row += 1;
+        self.scrolls_in_a_row += amount.abs() as u16;
+
+        if self.max_scrolls < self.scrolls_in_a_row {
+            self.max_scrolls = self.scrolls_in_a_row;
+        }
     }
 
     pub fn tick(&mut self, delta: f32) {
@@ -117,14 +123,60 @@ impl ScrollBlock {
         }
     }
 
-    pub fn get_parallelogram(&self) {}
+    pub fn get_parallelogram(&self) -> (Triangle, Triangle) {
+        let middle_top = Vector2 {
+            x: self.rect.x + self.rect.width / 2.0,
+            y: self.rect.y,
+        };
+
+        let middle_bottom = Vector2 {
+            x: self.rect.x + self.rect.width / 2.0,
+            y: self.rect.y + self.rect.height,
+        };
+
+        let left_triangle = Triangle {
+            v1: middle_top,
+            v2: Vector2 {
+                x: self.rect.x,
+                y: self.rect.y + self.rect.height,
+            },
+            v3: middle_bottom,
+        };
+
+        let right_triangle = Triangle {
+            v1: middle_top,
+            v2: middle_bottom,
+            v3: Vector2 {
+                x: self.rect.x + self.rect.width,
+                y: self.rect.y,
+            },
+        };
+        (left_triangle, right_triangle)
+    }
 }
 
-pub fn darken(color: Color, multiplier: f32) -> Color {
+pub fn multiply_color(color: Color, multiplier: f32) -> Color {
     Color {
         r: (color.r as f32 * multiplier) as u8,
         g: (color.g as f32 * multiplier) as u8,
         b: (color.b as f32 * multiplier) as u8,
         a: color.a,
+    }
+}
+
+pub struct Triangle {
+    pub v1: Vector2,
+    pub v2: Vector2,
+    pub v3: Vector2,
+}
+
+impl Triangle {
+    pub fn new() -> Self {
+        let zero = Vector2::zero();
+        Triangle {
+            v1: zero.clone(),
+            v2: zero.clone(),
+            v3: zero,
+        }
     }
 }
