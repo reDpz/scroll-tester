@@ -84,7 +84,8 @@ fn main() {
                     let mut change = scroll_event_clone.lock().unwrap();
                     // need to dereference before accessing the data
                     *change += delta_y;
-                    println!("scrolled: {change}")
+                    // debug print
+                    // println!("scrolled: {change}")
                 }
             }
         };
@@ -98,15 +99,15 @@ fn main() {
 
     /* ------------ MAINLOOP ------------ */
     while !rl.window_should_close() {
+        // get scroll inputs
         {
             let mut scroll = scroll_event.lock().unwrap();
             scroll_amount = scroll.clone() as i32;
+            // reset scroll counter each frame
             *scroll = 0;
         }
         delta = rl.get_frame_time();
         /* ----------- INPUTS ----------- */
-        // WARN: not sure what the output of this function even is so converting to i32 is lazy
-        // scroll_amount = rl.get_mouse_wheel_move_v().y as i32;
 
         if rl.is_mouse_button_pressed(MouseButton::MOUSE_BUTTON_LEFT) {
             cursor_disabled = !cursor_disabled;
@@ -121,10 +122,10 @@ fn main() {
         if scroll_amount != 0 {
             scroll_block.scroll(scroll_amount, now.elapsed().unwrap().as_secs_f64());
             // debug print
-            /* println!(
+            println!(
                 "Last scrolled: {}\nScrolls in a row: {}\n\n",
                 scroll_block.last_scrolled, scroll_block.scrolls_in_a_row
-            ) */
+            )
         }
 
         // move whenever the timer runs out of time
