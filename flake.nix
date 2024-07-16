@@ -21,6 +21,7 @@
             xorg.libXi
             xorg.libXrandr
             xorg.libXinerama
+            xorg.libXtst
           ];
           # Headers
           inputsFrom = with pkgs; [
@@ -29,6 +30,7 @@
             xorg.libXinerama
             xorg.libXcursor
             xorg.libXi
+            xorg.libXtst
           ];
 
           # project specific export
