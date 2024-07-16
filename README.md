@@ -4,7 +4,7 @@ A simple scroll testing application that collects scrolls in the background. Hea
 
 ## Installation
 ### Pre-compiled binary for windows
-Head to releases and download the latest release.
+Head to [releases](https://github.com/reDpz/scroll-tester/releases/tag/stable) and download the latest release.
 
 ### Building
 
