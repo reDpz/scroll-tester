@@ -31,8 +31,6 @@ fn main() {
     let screen_rec = Rectangle::new(0.0, 0.0, SCREEN_WIDTH, -SCREEN_HEIGHT);
     let position = Vector2::zero();
 
-    // TODO: make frame independent
-    // WHAT PART IS FRAME DEPENDENT???
     rl.set_target_fps(500); // fps cap set in order to avoid lagging th game
 
     let mut scroll_block = ScrollBlock::new(
