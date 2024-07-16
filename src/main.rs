@@ -120,10 +120,10 @@ fn main() {
         if scroll_amount != 0 {
             scroll_block.scroll(scroll_amount, now.elapsed().unwrap().as_secs_f64());
             // debug print
-            println!(
+            /* println!(
                 "Last scrolled: {}\nScrolls in a row: {}\n\n",
                 scroll_block.last_scrolled, scroll_block.scrolls_in_a_row
-            )
+            ) */
         }
 
         // move whenever the timer runs out of time
